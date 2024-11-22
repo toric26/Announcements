@@ -2,4 +2,8 @@ This file will be deleted before submission of this project.
 
 Kramer VP-440 HDMI 3
 
-We will create a program in Python that switches from 
+We will create a program in Python that switches the CAFETERIA SCREEN from to MORNING ANNOUNCEMENTS. 
+
+The machine starts on HDMI 1, we will switch it to HDMI 3, have it play the morning announcements from youtube.com/@BevFaceyAnnouncements, then return to the default slideshow. This will happen at 8:35, every weekday.
+
+
