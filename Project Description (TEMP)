@@ -7,3 +7,4 @@ We will create a program in Python that switches the CAFETERIA SCREEN from to MO
 The machine starts on HDMI 1, we will switch it to HDMI 3, have it play the morning announcements from youtube.com/@BevFaceyAnnouncements, then return to the default slideshow. This will happen at 8:35, every weekday.
 
 
+#ROUTE 12,1,2<cr>
