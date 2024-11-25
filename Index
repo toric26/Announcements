@@ -1,1 +1,91 @@
-:3 
+# :3 
+
+
+import subprocess
+import schedule
+import time
+import webbrowser
+import pytube
+import logging
+from datetime import datetime, time as datetime_time
+
+class HDMISwitcher:
+    def __init__(self, default_hdmi=1, announcement_hdmi=3):
+        self.default_hdmi = default_hdmi
+        self.announcement_hdmi = announcement_hdmi
+        self.youtube_channel = "https://www.youtube.com/@BevFaceyAnnouncements"
+        logging.basicConfig(level=logging.INFO, 
+                            format='%(asctime)s - %(levelname)s: %(message)s')
+        self.logger = logging.getLogger(__name__)
+
+    def switch_hdmi(self, target_hdmi):
+        """Switch HDMI input using command-line utility"""
+        try:
+            subprocess.run(["kramer-switch", str(target_hdmi)], check=True)
+            self.logger.info(f"Switched to HDMI {target_hdmi}")
+        except Exception as e:
+            self.logger.error(f"HDMI switch error: {e}")
+
+    def get_latest_video_duration(self):
+        """Get duration of the latest video from the channel"""
+        try:
+            # Use pytube to fetch the latest video
+            channel = pytube.Channel(self.youtube_channel)
+            latest_video = list(channel.videos)[0]  # Most recent video
+            
+            # Duration in seconds
+            duration = latest_video.length
+            
+            self.logger.info(f"Latest video duration: {duration} seconds")
+            return duration
+        
+        except Exception as e:
+            self.logger.error(f"Video duration fetch error: {e}")
+            # Fallback to average duration if fetch fails
+            return 3 * 60  # 3 minutes default
+
+    def play_announcements(self):
+        """Play morning announcements with dynamic duration"""
+        try:
+            # Switch to announcement HDMI
+            self.switch_hdmi(self.announcement_hdmi)
+            
+            # Open latest announcement video
+            channel = pytube.Channel(self.youtube_channel)
+            latest_video_url = list(channel.videos)[0].watch_url
+            webbrowser.open(latest_video_url)
+            
+            # Get precise video duration
+            video_duration = self.get_latest_video_duration()
+            
+            # Wait for video duration + 10 seconds buffer
+            self.logger.info(f"Waiting for {video_duration} seconds")
+            time.sleep(video_duration + 10)
+            
+            # Return to default HDMI and slideshow
+            self.switch_hdmi(self.default_hdmi)
+            
+        except Exception as e:
+            self.logger.error(f"Announcement playback error: {e}")
+            # Ensure return to default HDMI even if error occurs
+            self.switch_hdmi(self.default_hdmi)
+
+    def schedule_announcements(self):
+        """Schedule daily morning announcements"""
+        schedule.every().monday.at("08:35").do(self.play_announcements)
+        schedule.every().tuesday.at("08:35").do(self.play_announcements)
+        schedule.every().wednesday.at("08:35").do(self.play_announcements)
+        schedule.every().thursday.at("08:35").do(self.play_announcements)
+        schedule.every().friday.at("08:35").do(self.play_announcements)
+
+        self.logger.info("Announcements scheduler started")
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
+
+def main():
+    switcher = HDMISwitcher()
+    switcher.schedule_announcements()
+
+if __name__ == "__main__":
+    main()
