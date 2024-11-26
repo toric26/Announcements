@@ -79,7 +79,7 @@ class HDMISwitcher:
         #while True:
             #schedule.run_pending()
             #time.sleep(1)
-#Lines 78-81 are voided due unless Windows Task Scheduler doesn't work.
+#Lines 70-81 are voided due unless Windows Task Scheduler doesn't work.
 
 def main():
     switcher = HDMISwitcher()
