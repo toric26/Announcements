@@ -20,6 +20,7 @@ class AnnouncementsPlayer:
         try:
             channel = pytube.Channel(self.youtube_channel)
             latest_video = list(channel.videos)[0]  # Most recent video
+            print(latest_video)
             duration = latest_video.length
             
             self.logger.info(f"Latest video duration: {duration} seconds")
@@ -71,7 +72,7 @@ class AnnouncementsPlayer:
 
 def main():
     player = AnnouncementsPlayer()
-    player.schedule_announcements()
+    #player.schedule_announcements()
 
 if __name__ == "__main__":
     main()
