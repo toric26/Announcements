@@ -19,8 +19,8 @@ class AnnouncementsPlayer:
         """Get duration of the latest video from the channel"""
         try:
             channel = pytube.Channel(self.youtube_channel)
-            latest_video = list(channel.videos)[0]  # Most recent video
-            print(latest_video)
+            latest = latest_video = list(channel.videos)[0]  # Most recent video
+            print(latest)
             duration = latest_video.length
             
             self.logger.info(f"Latest video duration: {duration} seconds")
@@ -62,14 +62,6 @@ class AnnouncementsPlayer:
         except Exception as e:
             self.logger.error(f"Announcement playback error: {e}")
     
-    def schedule_announcements(self):
-        """Schedule daily morning announcements"""
-        schedule.every().monday.at("08:35").do(self.play_announcements)
-        schedule.every().tuesday.at("08:35").do(self.play_announcements)
-        schedule.every().wednesday.at("08:35").do(self.play_announcements)
-        schedule.every().thursday.at("08:35").do(self.play_announcements)
-        schedule.every().friday.at("08:35").do(self.play_announcements)
-
 def main():
     player = AnnouncementsPlayer()
     #player.schedule_announcements()
