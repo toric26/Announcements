@@ -61,13 +61,7 @@ class AnnouncementsPlayer:
         except Exception as e:
             self.logger.error(f"Announcement playback error: {e}")
     
-    def schedule_announcements(self):
-        """Schedule daily morning announcements"""
-        schedule.every().monday.at("08:35").do(self.play_announcements)
-        schedule.every().tuesday.at("08:35").do(self.play_announcements)
-        schedule.every().wednesday.at("08:35").do(self.play_announcements)
-        schedule.every().thursday.at("08:35").do(self.play_announcements)
-        schedule.every().friday.at("08:35").do(self.play_announcements)
+  
 
 def main():
     player = AnnouncementsPlayer()
