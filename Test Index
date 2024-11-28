@@ -1,70 +1,70 @@
 import webbrowser
 import time
-import pytube
-import schedule
-import logging
+#import pytube
+#import schedule
+#import logging
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-class AnnouncementsPlayer:
-    def __init__(self, youtube_channel="https://www.youtube.com/@BevFaceyAnnouncements"):
-        self.youtube_channel = youtube_channel
-        logging.basicConfig(level=logging.INFO, 
-                            format='%(asctime)s - %(levelname)s: %(message)s')
-        self.logger = logging.getLogger(__name__)
-        
-    def get_latest_video_duration(self):
-        """Get duration of the latest video from the channel"""
-        try:
-            channel = pytube.Channel(self.youtube_channel)
-            latest = latest_video = list(channel.videos)[0]  # Most recent video
-            print(latest)
-            duration = latest_video.length
-            
-            self.logger.info(f"Latest video duration: {duration} seconds")
-            return duration
-        
-        except Exception as e:
-            self.logger.error(f"Video duration fetch error: {e}")
-            return 3 * 60  # 3 minutes default
-    
-    def play_announcements(self):
-        """Play morning announcements with Selenium"""
-        try:
-            # Open Chrome webdriver
-            driver = webdriver.Chrome()
-            
-            # Get latest video URL
-            channel = pytube.Channel(self.youtube_channel)
-            latest_video_url = list(channel.videos)[0].watch_url
-            
-            # Navigate to video
-            driver.get(latest_video_url)
-            
-            # Wait for video to load and click fullscreen
-            WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.CSS_SELECTOR, "video"))
-            )
-            
-            # Fullscreen 
-            fullscreen_button = driver.find_element(By.CSS_SELECTOR, ".ytp-fullscreen-button")
-            fullscreen_button.click()
-            
-            # Get video duration and wait
-            video_duration = self.get_latest_video_duration()
-            time.sleep(video_duration + 10)
-            
-            # Close browser
-            driver.quit()
-            
-        except Exception as e:
-            self.logger.error(f"Announcement playback error: {e}")
-    
-def main():
-    player = AnnouncementsPlayer()
-    #player.schedule_announcements()
 
-if __name__ == "__main__":
-    main()
+youtube_channel="https://www.youtube.com/@BevFaceyAnnouncements"
+
+from googleapiclient.discovery import build
+
+# API key for YouTube Data API v3
+API_KEY = "AIzaSyDzFRbiN0rKEanm12z4wPCpCf_RChYEmxA"
+
+# YouTube channel ID for "@bevfaceyannouncements"
+CHANNEL_ID = "UCS8NR4uTYkC86rZsnf6LRCA"
+
+# Create a YouTube Data API service
+youtube = build('youtube', 'v3', developerKey=API_KEY)
+
+# Get the latest video for the channel
+latest_video = youtube.search().list(part='snippet', channelId=CHANNEL_ID, type='video', order='date', maxResults=1).execute()
+
+# Get the video details including duration
+video_id = latest_video['items'][0]['id']['videoId']
+video_details = youtube.videos().list(part='contentDetails', id=video_id).execute()
+duration = video_details['items'][0]['contentDetails']['duration']
+
+# Print the title, URL, and duration of the latest video
+for item in latest_video['items']:
+    #print("Latest Video Title:", item['snippet']['title'])
+    print("Latest Video URL:", f"https://www.youtube.com/watch?v={item['id']['videoId']}")
+    print("Video Duration:", duration)
+
+def authenticate():
+    # do stuff
+    credentials = 'somtheroiuasdaso;di'
+    return credentials
+
+def play_announcements():
+    """Play morning announcements with Selenium"""
+    try:
+        # Open Chrome webdriver
+        driver = webdriver.Chrome()
+        
+        # Wait for video to load and click fullscreen
+        WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "video"))
+        )
+        
+        # Fullscreen 
+        fullscreen_button = driver.find_element(By.CSS_SELECTOR, ".ytp-fullscreen-button")
+        fullscreen_button.click()
+        
+        # Get video duration and wait
+        video_duration = duration()
+        time.sleep(video_duration + 10)
+        
+        # Close browser
+        driver.quit()
+        
+    except Exception as e:
+        print(f"Announcement playback error: {e}")
+
+vid = 
+print(vid)
