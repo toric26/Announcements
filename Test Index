@@ -7,6 +7,11 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+import time
+import re
 
 
 youtube_channel="https://www.youtube.com/@BevFaceyAnnouncements"
@@ -36,35 +41,132 @@ for item in latest_video['items']:
     print("Latest Video URL:", f"https://www.youtube.com/watch?v={item['id']['videoId']}")
     print("Video Duration:", duration)
 
-def authenticate():
-    # do stuff
-    credentials = 'somtheroiuasdaso;di'
-    return credentials
+def parse_time_string(time_str):
+    # Remove 'pt' prefix if present
+    time_str = time_str.lower().replace('pt', '')
+   
+    # Regular expression to extract minutes and seconds
+    # Handles formats like 1m8s
+    minutes = re.findall(r'(\d+)m', time_str)
+    seconds = re.findall(r'(\d+)s', time_str)
+   
+    total_seconds = 0
+   
+    # Add minutes if found
+    if minutes:
+        total_seconds += int(minutes[0]) * 60
+   
+    # Add seconds if found
+    if seconds:
+        total_seconds += int(seconds[0])
+   
+    return total_seconds
 
-def play_announcements():
-    """Play morning announcements with Selenium"""
+length = parse_time_string(duration)
+     
+
+def autoplay_youtube_video(video_url):
+    """
+    Autoplay a YouTube video and retrieve its URL using Selenium
+   
+    :param video_url: Full YouTube video URL
+    :return: Tuple of (current video URL, video title)
+    """
+    # Set up Chrome options
+    chrome_options = Options()
+    # Uncomment the next line if you want to run in headless mode
+    # chrome_options.add_argument("--headless")
+   
+    # Set up the WebDriver
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+   
     try:
-        # Open Chrome webdriver
-        driver = webdriver.Chrome()
-        
-        # Wait for video to load and click fullscreen
-        WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, "video"))
-        )
-        
-        # Fullscreen 
-        fullscreen_button = driver.find_element(By.CSS_SELECTOR, ".ytp-fullscreen-button")
-        fullscreen_button.click()
-        
-        # Get video duration and wait
-        video_duration = duration()
-        time.sleep(video_duration + 10)
-        
-        # Close browser
-        driver.quit()
-        
+        # Navigate to the video URL
+        driver.get(f"https://www.youtube.com/watch?v={item['id']['videoId']}")
+       
+        # Wait for the page to load
+        time.sleep(3)
+       
+        # Find and click the play button if needed
+        try:
+            # Try to find and click the YouTube play button
+            play_button = driver.find_element(By.CLASS_NAME, "ytp-play-button")
+            play_button.click()
+        except Exception as e:
+            print("Could not find or click play button automatically")
+       
+        # Wait for the video to start playing
+        time.sleep(5 + length)
+       
+        # Get the current video URL (might be different from original if redirected)
+        current_video_url = driver.current_url
+       
+        # Try to get the video title
+        try:
+            video_title = driver.title
+        except Exception:
+            video_title = "Unknown Title"
+       
+        return current_video_url, video_title
+   
     except Exception as e:
-        print(f"Announcement playback error: {e}")
+        print(f"An error occurred: {e}")
+        return None, None
+   
+    finally:
+        # Always close the browser
+        driver.quit()
 
-vid = 
-print(vid)
+def main():
+    # Example usage
+    video_url = f"https://www.youtube.com/watch?v={item['id']['videoId']}"  # Replace with your desired video URL
+   
+    # Call the function
+    result_url, title = autoplay_youtube_video(video_url)
+   
+    if result_url:
+        print(f"Video Title: {title}")
+        print(f"Current Video URL: {result_url}")
+    else:
+        print("Failed to access the video")
+
+if __name__ == "__main__":
+    main()
+
+
+'''
+def monitor_video_duration(self):
+        """
+        Monitor video duration and kill program if exceeds MAX_VIDEO_DURATION
+        """
+        self._start_video()
+        
+        try:
+            start_time = time.time()
+            
+            while True:
+                # Calculate elapsed time
+                elapsed_time = time.time() - start_time
+                
+                # Check if elapsed time exceeds maximum allowed duration
+                if elapsed_time > self.MAX_VIDEO_DURATION:
+                    print(f"Video exceeded maximum duration of {self.MAX_VIDEO_DURATION} seconds. Stopping...")
+                    break
+                
+                # Wait before next check
+                time.sleep(self.CHECK_INTERVAL)
+        
+        except Exception as e:
+            print(f"Monitoring error: {e}")
+        
+        finally:
+            self._cleanup()
+    
+def _cleanup(self):
+        """
+        Safely close the browser
+        """
+        if self.driver:
+            self.driver.quit()
+'''

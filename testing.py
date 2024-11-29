@@ -1,3 +1,5 @@
+youtube_channel="https://www.youtube.com/@BevFaceyAnnouncements"
+
 from googleapiclient.discovery import build
 
 # API key for YouTube Data API v3
