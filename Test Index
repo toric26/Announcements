@@ -12,14 +12,16 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 import re
+import keyboard # type: ignore
+import os
 
 
 youtube_channel="https://www.youtube.com/@BevFaceyAnnouncements"
 
 from googleapiclient.discovery import build
 
-# API key for YouTube Data API v3
-API_KEY = "ph"
+with open(r'C:\Users\Facey\Downloads\apikey.txt', 'r') as file:
+    API_KEY = file.read().strip()
 
 # YouTube channel ID for "@bevfaceyannouncements"
 CHANNEL_ID = "UCS8NR4uTYkC86rZsnf6LRCA"
@@ -95,6 +97,11 @@ def autoplay_youtube_video(video_url):
             play_button.click()
         except Exception as e:
             print("Could not find or click play button automatically")
+        keyboard.press('f11')
+        time.sleep(1)
+        keyboard.press('f')
+        keyboard.release('f')
+        
        
         # Wait for the video to start playing
         time.sleep(5 + length)
@@ -170,3 +177,4 @@ def _cleanup(self):
         if self.driver:
             self.driver.quit()
 '''
+os.system("cls")
