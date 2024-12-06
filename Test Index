@@ -19,7 +19,7 @@ youtube_channel="https://www.youtube.com/@BevFaceyAnnouncements"
 from googleapiclient.discovery import build
 
 # API key for YouTube Data API v3
-API_KEY = "placeholdah"
+API_KEY = "ph"
 
 # YouTube channel ID for "@bevfaceyannouncements"
 CHANNEL_ID = "UCS8NR4uTYkC86rZsnf6LRCA"
