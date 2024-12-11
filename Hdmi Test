@@ -1,0 +1,21 @@
+import serial # type: ignore
+
+def switch_input(input_port, output_port=3):
+    """
+    Simple function to switch inputs on Kramer VP-440
+    
+    Args:
+        input_port (int): Input port to switch to (1-8)
+        output_port (int): Output port to switch (default: 3)
+    """
+
+# Quick usage examples
+def main():
+    # Switch to HDMI 1 (input 1)
+    switch_input(1)
+    
+    # Switch to HDMI 3 (input 3)
+    switch_input(3)
+
+if __name__ == "__main__":
+    main()
