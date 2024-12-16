@@ -1,91 +1,169 @@
-# :3 
-
-
-import subprocess
-import schedule
-import time
 import webbrowser
-import pytube
-import logging
-from datetime import datetime, time as datetime_time
+import time
+import socket
+#import schedule
+#import logging
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+import time
+import re
+import keyboard # type: ignore
+import os
 
-class HDMISwitcher:
-    def __init__(self, default_hdmi=1, announcement_hdmi=3):
-        self.default_hdmi = default_hdmi
-        self.announcement_hdmi = announcement_hdmi
-        self.youtube_channel = "https://www.youtube.com/@BevFaceyAnnouncements"
-        logging.basicConfig(level=logging.INFO, 
-                            format='%(asctime)s - %(levelname)s: %(message)s')
-        self.logger = logging.getLogger(__name__)
 
-    def switch_hdmi(self, target_hdmi):
-        """Switch HDMI input using command-line utility"""
+youtube_channel="https://www.youtube.com/@BevFaceyAnnouncements"
+
+from googleapiclient.discovery import build
+
+with open(r'C:\Users\Facey\Downloads\apikey.txt', 'r') as file:
+    API_KEY = file.read().strip()
+
+# YouTube channel ID for "@bevfaceyannouncements"
+CHANNEL_ID = "UCS8NR4uTYkC86rZsnf6LRCA"
+
+# Create a YouTube Data API service
+youtube = build('youtube', 'v3', developerKey=API_KEY)
+
+# Get the latest video for the channel
+latest_video = youtube.search().list(part='snippet', channelId=CHANNEL_ID, type='video', order='date', maxResults=1).execute()
+
+# Get the video details including duration
+video_id = latest_video['items'][0]['id']['videoId']
+video_details = youtube.videos().list(part='contentDetails', id=video_id).execute()
+duration = video_details['items'][0]['contentDetails']['duration']
+
+# Print the title, URL, and duration of the latest video
+for item in latest_video['items']:
+    #print("Latest Video Title:", item['snippet']['title'])
+    print("Latest Video URL:", f"https://www.youtube.com/watch?v={item['id']['videoId']}")
+    print("Video Duration:", duration)
+
+def parse_time_string(time_str):
+    # Remove 'pt' prefix if present
+    time_str = time_str.lower().replace('pt', '')
+   
+    # Regular expression to extract minutes and seconds
+    # Handles formats like 1m8s
+    minutes = re.findall(r'(\d+)m', time_str)
+    seconds = re.findall(r'(\d+)s', time_str)
+   
+    total_seconds = 0
+   
+    # Add minutes if found
+    if minutes:
+        total_seconds += int(minutes[0]) * 60
+   
+    # Add seconds if found
+    if seconds:
+        total_seconds += int(seconds[0])
+   
+    return total_seconds
+
+length = parse_time_string(duration)
+
+# Configuration
+UDP_IP = "192.168.140.25"  # VP-440 IP address (default)
+UDP_PORT = 50000         # VP-440 UDP port (default)
+
+# Create a UDP socket
+#sock = socket.SOCK_DGRAM
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+# Command to switch to HDMI input 3
+command = "#ROUTE 12,1,2\r"
+
+# Send the command
+sock.sendto(command.encode(), (UDP_IP, UDP_PORT))
+print("switched to HDMI 3 >w<")
+#time.sleep(1 + length)
+
+def autoplay_youtube_video(video_url):
+    """
+    Autoplay a YouTube video and retrieve its URL using Selenium
+   
+    :param video_url: Full YouTube video URL
+    :return: Tuple of (current video URL, video title)
+    """
+    # Set up Chrome options
+    chrome_options = Options()
+    # Uncomment the next line if you want to run in headless mode
+    # chrome_options.add_argument("--headless")
+   
+    # Set up the WebDriver
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+   
+    try:
+        # Navigate to the video URL
+        driver.get(f"https://www.youtube.com/watch?v={item['id']['videoId']}")
+       
+        # Wait for the page to load
+        time.sleep(3)
+       
+        # Find and click the play button if needed
         try:
-            subprocess.run(["kramer-switch", str(target_hdmi)], check=True)
-            self.logger.info(f"Switched to HDMI {target_hdmi}")
+            # Try to find and click the YouTube play button
+            play_button = driver.find_element(By.CLASS_NAME, "ytp-play-button")
+            play_button.click()
         except Exception as e:
-            self.logger.error(f"HDMI switch error: {e}")
-
-    def get_latest_video_duration(self):
-        """Get duration of the latest video from the channel"""
-        try:
-            # Use pytube to fetch the latest video
-            channel = pytube.Channel(self.youtube_channel)
-            latest_video = list(channel.videos)[0]  # Most recent video
-            
-            # Duration in seconds
-            duration = latest_video.length
-            
-            self.logger.info(f"Latest video duration: {duration} seconds")
-            return duration
+            print("Could not find or click play button automatically")
+        keyboard.press('f11')
+        time.sleep(1)
+        keyboard.press('f')
+        keyboard.release('f')
         
-        except Exception as e:
-            self.logger.error(f"Video duration fetch error: {e}")
-            # Fallback to average duration if fetch fails
-            return 3 * 60  # 3 minutes default
-
-    def play_announcements(self):
-        """Play morning announcements with dynamic duration"""
+       
+        # Wait for the video to start playing
+        time.sleep(5 + length)
+       
+        # Get the current video URL (might be different from original if redirected)
+        current_video_url = driver.current_url
+       
+        # Try to get the video title
         try:
-            # Switch to announcement HDMI
-            self.switch_hdmi(self.announcement_hdmi)
-            
-            # Open latest announcement video
-            channel = pytube.Channel(self.youtube_channel)
-            latest_video_url = list(channel.videos)[0].watch_url
-            webbrowser.open(latest_video_url)
-            
-            # Get precise video duration
-            video_duration = self.get_latest_video_duration()
-            
-            # Wait for video duration + 10 seconds buffer
-            self.logger.info(f"Waiting for {video_duration} seconds")
-            time.sleep(video_duration + 10)
-            
-            # Return to default HDMI and slideshow
-            self.switch_hdmi(self.default_hdmi)
-            
-        except Exception as e:
-            self.logger.error(f"Announcement playback error: {e}")
-            # Ensure return to default HDMI even if error occurs
-            self.switch_hdmi(self.default_hdmi)
+            video_title = driver.title
+        except Exception:
+            video_title = "Unknown Title"
+       
+        return current_video_url, video_title
+   
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None, None
+   
+    finally:
+        # Always close the browser
+        driver.quit()
+        command = "#ROUTE 12,1,0\r"
 
-    def schedule_announcements(self):
-        """Schedule daily morning announcements"""
-        schedule.every().monday.at("08:35").do(self.play_announcements)
-        schedule.every().tuesday.at("08:35").do(self.play_announcements)
-        schedule.every().wednesday.at("08:35").do(self.play_announcements)
-        schedule.every().thursday.at("08:35").do(self.play_announcements)
-        schedule.every().friday.at("08:35").do(self.play_announcements)
+        # Send the command
+        sock.sendto(command.encode(), (UDP_IP, UDP_PORT))
 
-        self.logger.info("Announcements scheduler started")
-        while True:
-            schedule.run_pending()
-            time.sleep(1)
+
+        # Close the socket
+        sock.close()
+        print("switched back to default HDMI :3")
+        print("done! :3 uwu")
 
 def main():
-    switcher = HDMISwitcher()
-    switcher.schedule_announcements()
+    # Example usage
+    video_url = f"https://www.youtube.com/watch?v={item['id']['videoId']}"  # Replace with your desired video URL
+   
+    # Call the function
+    result_url, title = autoplay_youtube_video(video_url)
+   
+    if result_url:
+        print(f"Video Title: {title}")
+        print(f"Current Video URL: {result_url}")
+    else:
+        print("Failed to access the video")
 
 if __name__ == "__main__":
     main()
+
+
+os.system("cls")
