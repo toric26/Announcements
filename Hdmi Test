@@ -8,7 +8,7 @@ UDP_PORT = 50000         # VP-440 UDP port (default)
 #sock = socket.SOCK_DGRAM
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 # Command to switch to HDMI input 3
-command = "#ROUTE 12,1,2<cr>"
+command = "#ROUTE 12,1,2\r"
 
 # Send the command
 sock.sendto(command.encode(), (UDP_IP, UDP_PORT))
@@ -22,7 +22,7 @@ UDP_PORT = 50000         # VP-440 UDP port (default)
 #sock = socket.SOCK_DGRAM
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 # Command to switch to HDMI input 3
-command = "#ROUTE 12,1,1<cr>"
+command = "#ROUTE 12,1,1\r"
 
 # Send the command
 sock.sendto(command.encode(), (UDP_IP, UDP_PORT))
